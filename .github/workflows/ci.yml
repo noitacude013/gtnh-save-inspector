@@ -1,0 +1,51 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run unit tests
+        run: python -m unittest discover -v
+      - name: Check CLI entry point
+        run: python -m gtnh_save_inspector --version
+      - name: Offline e2e (fixture)
+        run: python scripts/ci_offline.py
+      - name: GUI API smoke
+        run: python scripts/gui_smoke.py
+      - name: GUI static checks
+        run: python scripts/check_gui_static.py
+      - name: Build wheel
+        run: python -m pip wheel . --no-deps -w /tmp/gtnh-wheel
+      - name: Check wheel static assets
+        run: |
+          python - <<'PY'
+          import glob, zipfile
+          wheel = glob.glob('/tmp/gtnh-wheel/*.whl')[0]
+          names = zipfile.ZipFile(wheel).namelist()
+          assert any('gui/static/app.js' in n for n in names)
+          assert any('gui/static/i18n.js' in n for n in names)
+          print('wheel static assets OK')
+          PY
+      - name: Install frontend test deps
+        run: npm ci
+      - name: Frontend DOM smoke
+        run: node tests/frontend_smoke.mjs
+      - name: Frontend syntax
+        run: |
+          node --check gtnh_save_inspector/gui/static/app.js
+          node --check gtnh_save_inspector/gui/static/i18n.js

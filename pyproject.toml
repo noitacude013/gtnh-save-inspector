@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gtnh-save-inspector"
+version = "1.0"
+description = "Read-only inspector for GregTech: New Horizons (1.7.10) Anvil world saves: machine state, progress and chunk metadata."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "noitacude013" }]
+keywords = ["gtnh", "minecraft", "1.7.10", "gregtech", "anvil", "nbt", "debugging"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Games/Entertainment :: Simulation",
+    "Topic :: Utilities",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+build = ["pyinstaller>=6"]
+gui = ["pywebview>=6"]
+
+[project.scripts]
+gtnh-inspect = "gtnh_save_inspector.cli.main:main"
+
+[tool.setuptools.packages.find]
+include = ["gtnh_save_inspector*"]
+
+[tool.setuptools.package-data]
+gtnh_save_inspector = [
+    "live/agent/live-probe-13.jar",
+    "live/agent/attach/*.class",
+    "gui/static/*",
+]

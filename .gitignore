@@ -1,0 +1,29 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.idea/
+.vscode/
+demo/
+gtnh_save_inspector/live/agent/live-probe.jar
+gtnh_save_inspector/live/agent/live-probe-2.jar
+.venv/
+
+# stale live-probe artifacts held by a running game; only -13 is shipped
+gtnh_save_inspector/live/agent/live-probe-3.jar
+gtnh_save_inspector/live/agent/live-probe-4.jar
+gtnh_save_inspector/live/agent/live-probe-8.jar
+gtnh_save_inspector/live/agent/live-probe-9.jar
+agents/java/LiveProbeAgent3.java
+
+# frontend test dev dependencies
+node_modules/
+gui-launcher.log
+*.lnk
+# generated jlink runtime for the full-dependency exe
+packaging/java-runtime/
+
+# internal project report (kept local only)
+docs/project-report-v1.0.md

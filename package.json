@@ -1,0 +1,12 @@
+{
+  "name": "gtnh-save-inspector-frontend-tests",
+  "private": true,
+  "version": "1.0",
+  "description": "Headless DOM tests for the gtnh-save-inspector GUI",
+  "scripts": {
+    "test:frontend": "node tests/frontend_smoke.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.0"
+  }
+}

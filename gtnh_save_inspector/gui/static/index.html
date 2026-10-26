@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>gtnh-save-inspector</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-theme="light">
+  <header class="topbar">
+    <div class="brand">
+      <div>
+        <div class="title">gtnh-save-inspector</div>
+        <div class="subtitle" data-i18n="app.subtitle">GTNH 存档与在线机器检查器</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="conn-status" class="pill" data-i18n="app.ready">就绪</span>
+      <button id="lang-toggle" class="icon-btn" title="中文 / English">中/EN</button>
+      <button id="theme-toggle" class="icon-btn" title="Theme">◐</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" role="tab" aria-selected="true" data-tab="worlds" data-i18n="tab.worlds">世界/存档</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="browse" data-i18n="tab.browse">机器浏览</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="snapshots" data-i18n="tab.snapshots">快照与 Diff</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="live" data-i18n="tab.live">在线探针</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="settings" data-i18n="tab.settings">设置</button>
+  </nav>
+
+  <main>
+    <!-- worlds -->
+    <section role="tabpanel" id="panel-worlds" class="panel active">
+      <div class="card">
+        <div class="row">
+          <label data-i18n="worlds.dir" for="worlds-dir">存档目录</label>
+          <input id="worlds-dir" class="grow" data-i18n-placeholder="worlds.dirPlaceholder" placeholder=".../saves 或实例目录">
+          <button id="worlds-load" class="primary" data-i18n="worlds.load">扫描</button>
+        </div>
+        <div id="worlds-message" class="muted"></div>
+      </div>
+      <div id="worlds-list" class="grid"></div>
+    </section>
+
+    <!-- browse -->
+    <section role="tabpanel" id="panel-browse" class="panel">
+      <div class="card">
+        <div class="row">
+          <label data-i18n="browse.world" for="browse-world">世界</label>
+          <select id="browse-world" class="grow"></select>
+          <span id="browse-dims-hint" class="muted"></span>
+        </div>
+        <div class="row wrap">
+          <label data-i18n="browse.dims" for="browse-dims">维度</label>
+          <input id="browse-dims" class="grow" data-i18n-placeholder="browse.dimsPlaceholder" placeholder="overworld, PERSONAL_DIM_180 (留空=全部)">
+          <label data-i18n="browse.mte" for="browse-mte">机器类型</label>
+          <input id="browse-mte" class="grow" list="browse-machine-options" autocomplete="off" data-i18n-placeholder="browse.mtePlaceholder" placeholder="输入或选择机器类型（留空=全部）">
+          <datalist id="browse-machine-options"></datalist>
+          <label data-i18n="browse.where" for="browse-where">过滤</label>
+          <input id="browse-where" class="grow" data-i18n-placeholder="browse.wherePlaceholder" placeholder="progress>0">
+        </div>
+        <div class="row wrap">
+          <label data-i18n="browse.jobs" for="browse-jobs">并发</label>
+          <input id="browse-jobs" type="number" min="1" value="1">
+          <label class="check"><input id="browse-all" type="checkbox"> <span data-i18n="browse.all">包含仓/总线</span></label>
+          <label class="check"><input id="browse-fast" type="checkbox" checked> <span data-i18n="browse.fast">快速扫描</span></label>
+          <button id="browse-scan" class="primary" data-i18n="browse.scan">扫描</button>
+          <button id="browse-cancel" class="ghost" data-i18n="browse.cancel">取消</button>
+        </div>
+        <div class="progress"><div id="browse-progress" class="progress-bar"></div></div>
+        <div id="browse-status" class="muted"></div>
+      </div>
+      <div class="split">
+        <div class="card table-card">
+          <div class="row">
+            <strong data-i18n="browse.results">结果</strong>
+            <span id="browse-count" class="muted"></span>
+            <span class="spacer"></span>
+            <button id="export-csv" data-i18n="browse.exportCsv">导出 CSV</button>
+            <button id="export-snapshot" data-i18n="browse.exportSnapshot">保存快照</button>
+          </div>
+          <div class="table-wrap"><table id="browse-table"><thead></thead><tbody></tbody></table></div>
+        </div>
+        <div class="card detail-card">
+          <div class="row"><strong data-i18n="browse.detail">详情</strong><span id="detail-pos" class="muted"></span></div>
+          <div id="detail-body" class="detail-body"><span class="muted" data-i18n="browse.selectHint">点击左侧一行查看详情</span></div>
+          <div class="row"><button id="detail-raw" class="ghost" data-i18n="browse.raw">原始 NBT</button></div>
+          <pre id="detail-raw-box" class="raw-box hidden"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- snapshots -->
+    <section role="tabpanel" id="panel-snapshots" class="panel">
+      <div class="card">
+        <div class="row wrap">
+          <label data-i18n="snap.import" for="snap-import-path">导入快照路径</label>
+          <input id="snap-import-path" class="grow" data-i18n-placeholder="snap.importPlaceholder" placeholder="C:\\...\\snapshot.json">
+          <button id="snap-import" data-i18n="snap.importBtn">导入</button>
+          <button id="snap-refresh" class="ghost" data-i18n="app.refresh">刷新</button>
+        </div>
+        <div class="split-small">
+          <div>
+            <label data-i18n="snap.a" for="snap-a">A（旧）</label>
+            <select id="snap-a" class="grow"></select>
+          </div>
+          <div>
+            <label data-i18n="snap.b" for="snap-b">B（新）</label>
+            <select id="snap-b" class="grow"></select>
+          </div>
+        </div>
+        <div class="row wrap">
+          <button id="snap-download-a" data-i18n="snap.downloadA">下载 A</button>
+          <button id="snap-download-b" data-i18n="snap.downloadB">下载 B</button>
+        </div>
+        <div class="row wrap">
+          <label data-i18n="snap.ignore" for="snap-ignore">忽略字段</label>
+          <input id="snap-ignore" class="grow" placeholder="mUpdate,mTotalRunTime">
+          <label data-i18n="snap.machine" for="snap-machine">机器</label>
+          <input id="snap-machine" placeholder="MTEEyeOfHarmony">
+          <button id="snap-diff" class="primary" data-i18n="snap.diff">对比</button>
+        </div>
+        <div id="snap-status" class="muted"></div>
+      </div>
+      <div class="card">
+        <div id="snap-meta" class="warn hidden"></div>
+        <div id="snap-summary" class="muted"></div>
+        <div class="table-wrap"><table id="snap-table"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- live -->
+    <section role="tabpanel" id="panel-live" class="panel">
+      <div class="card">
+        <div class="row wrap">
+          <button id="live-find" data-i18n="live.find">查找游戏</button>
+          <span id="live-games" class="muted"></span>
+          <label data-i18n="live.pid" for="live-pid">PID</label>
+          <input id="live-pid" placeholder="auto" value="auto">
+          <label data-i18n="live.world" for="live-world">世界</label>
+          <select id="live-world" class="grow"></select>
+        </div>
+        <div class="row wrap">
+          <label data-i18n="live.machine" for="live-machine">机器类</label>
+          <input id="live-machine" list="live-machine-options" autocomplete="off" data-i18n-placeholder="live.machinePlaceholder" placeholder="输入或选择机器类（留空=全部）">
+          <datalist id="live-machine-options"></datalist>
+          <label data-i18n="live.dims" for="live-dims">维度</label>
+          <input id="live-dims" data-i18n-placeholder="live.dimsPlaceholder" placeholder="180, overworld">
+          <label data-i18n="live.max" for="live-max">上限</label>
+          <input id="live-max" type="number" value="200">
+          <label data-i18n="live.interval" for="live-interval">间隔(ms)</label>
+          <input id="live-interval" type="number" value="1000">
+        </div>
+        <div class="row wrap">
+          <label class="check"><input id="live-all" type="checkbox"> <span data-i18n="live.all">包含仓/总线</span></label>
+          <label class="check"><input id="live-changes" type="checkbox"> <span data-i18n="live.changes">只看变化</span></label>
+          <label data-i18n="live.minDelta" for="live-min-delta">最小增量</label>
+          <input id="live-min-delta" type="number" value="0">
+          <label data-i18n="live.until" for="live-until">告警条件</label>
+          <input id="live-until" data-i18n-placeholder="live.untilPlaceholder" placeholder="progress>30000">
+          <button id="live-connect" class="primary" data-i18n="live.connect">连接</button>
+          <button id="live-stop" class="ghost" data-i18n="live.stop">停止</button>
+          <button id="live-save" data-i18n="live.save">保存快照</button>
+        </div>
+        <div id="live-status" class="muted"></div>
+        <div id="live-alert" class="warn hidden"></div>
+      </div>
+      <div class="split">
+        <div class="card table-card">
+          <div class="row"><strong data-i18n="live.machines">机器</strong><span id="live-count" class="muted"></span></div>
+          <div class="table-wrap"><table id="live-table"><thead></thead><tbody></tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="row"><strong data-i18n="live.inspect">单点检查</strong></div>
+          <div class="row wrap">
+            <span class="field"><label data-i18n="live.dim" for="inspect-dim">维度</label><input id="inspect-dim" type="number" value="180"></span>
+            <span class="field"><label data-i18n="live.x" for="inspect-x">方块 X</label><input id="inspect-x" type="number" value="104"></span>
+            <span class="field"><label data-i18n="live.z" for="inspect-z">方块 Z</label><input id="inspect-z" type="number" value="104"></span>
+            <button id="inspect-chunk" data-i18n="live.chunk">查 chunk</button>
+          </div>
+          <div class="muted" data-i18n="live.inspectHint">输入方块坐标，不是 chunk 序号；例如方块 X=96~111、Z=48~63 对应 chunk (6,3)。</div>
+          <div class="row wrap">
+            <span class="field"><label data-i18n="live.pos" for="inspect-pos">方块坐标 (x,y,z)</label><input id="inspect-pos" data-i18n-placeholder="live.posPlaceholder" placeholder="104,49,136"></span>
+            <button id="inspect-te" data-i18n="live.te">查 TE</button>
+          </div>
+          <pre id="inspect-result" class="raw-box"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- settings -->
+    <section role="tabpanel" id="panel-settings" class="panel">
+      <div class="card">
+        <div class="row wrap">
+          <label data-i18n="settings.world" for="cfg-world">默认世界</label>
+          <input id="cfg-world" class="grow">
+        </div>
+        <div class="row wrap">
+          <label data-i18n="settings.saves" for="cfg-saves">存档目录</label>
+          <input id="cfg-saves" class="grow">
+        </div>
+        <div class="row wrap">
+          <label data-i18n="settings.snapshotDir" for="cfg-snapshot-dir">快照保存路径</label>
+          <input id="cfg-snapshot-dir" class="grow" data-i18n-placeholder="settings.dirPlaceholder" placeholder="留空 = 默认 workspace">
+          <label data-i18n="settings.csvDir" for="cfg-csv-dir">CSV 保存路径</label>
+          <input id="cfg-csv-dir" class="grow" data-i18n-placeholder="settings.dirPlaceholder" placeholder="留空 = 默认 workspace">
+        </div>
+        <div class="row wrap">
+          <label data-i18n="settings.pid" for="cfg-pid">默认 PID</label>
+          <input id="cfg-pid">
+          <label data-i18n="settings.java" for="cfg-java">Java 路径</label>
+          <input id="cfg-java" class="grow">
+        </div>
+        <div class="row wrap">
+          <button id="cfg-save" class="primary" data-i18n="app.save">保存</button>
+        </div>
+        <div id="settings-status" class="muted"></div>
+      </div>
+      <div class="card">
+        <div id="about"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script src="/static/i18n.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
